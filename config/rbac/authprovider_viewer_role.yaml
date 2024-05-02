@@ -1,0 +1,27 @@
+# permissions for end users to view authproviders.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: authprovider-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: argo-operations
+    app.kubernetes.io/part-of: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: authprovider-viewer-role
+rules:
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - authproviders
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - authproviders/status
+  verbs:
+  - get

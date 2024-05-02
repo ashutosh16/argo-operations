@@ -1,0 +1,139 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: argoaisupports.argosupport.argoproj.extensions.io
+spec:
+  group: argosupport.argoproj.extensions.io
+  names:
+    kind: ArgoAISupport
+    listKind: ArgoAISupportList
+    plural: argoaisupports
+    singular: argoaisupport
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ArgoAISupport is the Schema for the argoaisupports API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ArgoAISupportSpec defines the desired state of ArgoAISupport
+            properties:
+              workflows:
+                items:
+                  properties:
+                    autProviderRef:
+                      items:
+                        properties:
+                          name:
+                            type: string
+                          namespace:
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      type: array
+                    name:
+                      default: gen-ai-f s-f
+                      type: string
+                  required:
+                  - autProviderRef
+                  - name
+                  type: object
+                type: array
+            type: object
+          status:
+            description: ArgoAISupportStatus defines the observed state of ArgoAISupport
+            properties:
+              finishedAt:
+                format: date-time
+                type: string
+              message:
+                type: string
+              phase:
+                type: string
+              results:
+                description: |-
+                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
+                properties:
+                  feedback:
+                    properties:
+                      downVote:
+                        type: boolean
+                      feedbackMsg:
+                        type: string
+                      upVote:
+                        type: boolean
+                    required:
+                    - downVote
+                    - feedbackMsg
+                    - upVote
+                    type: object
+                  finishedAt:
+                    format: date-time
+                    type: string
+                  help:
+                    properties:
+                      links:
+                        items:
+                          type: string
+                        type: array
+                      slackChannel:
+                        type: string
+                    required:
+                    - links
+                    - slackChannel
+                    type: object
+                  name:
+                    type: string
+                  startedAt:
+                    format: date-time
+                    type: string
+                  summary:
+                    properties:
+                      mainSummary:
+                        type: string
+                      userRecommendation:
+                        type: string
+                    required:
+                    - mainSummary
+                    - userRecommendation
+                    type: object
+                required:
+                - feedback
+                - finishedAt
+                - help
+                - name
+                - startedAt
+                - summary
+                type: object
+              startedAt:
+                format: date-time
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

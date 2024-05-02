@@ -1,0 +1,13 @@
+apiVersion: argosupport.argoproj.extensions.io/v1alpha1
+kind: ArgoAISupport
+metadata:
+  labels:
+    app.kubernetes.io/name: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: gen-ai
+spec:
+  workflows:
+  - name: gen-ai
+    autProviderRef:
+    - name: genai-authprovider
+    - name: argocd-auth-provider

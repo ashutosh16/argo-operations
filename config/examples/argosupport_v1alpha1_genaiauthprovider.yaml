@@ -1,0 +1,16 @@
+apiVersion: argosupport.argoproj.extensions.io/v1alpha1
+kind: AuthProvider
+metadata:
+  labels:
+    app.kubernetes.io/name: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: genai-auth-provider
+spec:
+  auth:
+    baseUrl: "https://ibpgenai-e2e.api.intuit.com"
+    appId: "Intuit.dev.build.ibpgenaiservice"
+    identityEndpoint: "https://identityinternal-e2e.api.intuit.com"
+    identityJobID: "9341450931784620"
+    apiVersion: "v2"
+  secretRef:
+    name: genai-secret

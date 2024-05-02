@@ -1,0 +1,31 @@
+# permissions for end users to edit authproviders.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: authprovider-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: argo-operations
+    app.kubernetes.io/part-of: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: authprovider-editor-role
+rules:
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - authproviders
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - authproviders/status
+  verbs:
+  - get

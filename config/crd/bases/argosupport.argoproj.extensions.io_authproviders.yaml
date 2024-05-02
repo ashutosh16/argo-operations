@@ -1,0 +1,75 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: authproviders.argosupport.argoproj.extensions.io
+spec:
+  group: argosupport.argoproj.extensions.io
+  names:
+    kind: AuthProvider
+    listKind: AuthProviderList
+    plural: authproviders
+    singular: authprovider
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: AuthProvider is the Schema for the authproviders API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AuthProviderSpec defines the desired state of AuthProvider
+            properties:
+              auth:
+                properties:
+                  apiVersion:
+                    type: string
+                  appId:
+                    type: string
+                  baseUrl:
+                    type: string
+                  identityEndpoint:
+                    type: string
+                  identityJobID:
+                    type: string
+                type: object
+              secretRef:
+                description: SecretRef contains the credentials required to auth to
+                  a specific ai_operations
+                properties:
+                  name:
+                    description: |-
+                      Name of the referent.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      TODO: Add other useful fields. apiVersion, kind, uid?
+                    type: string
+                type: object
+                x-kubernetes-map-type: atomic
+            type: object
+          status:
+            description: AuthProviderStatus defines the observed state of AuthProvider
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

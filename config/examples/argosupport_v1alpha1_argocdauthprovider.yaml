@@ -1,0 +1,12 @@
+apiVersion: argosupport.argoproj.extensions.io/v1alpha1
+kind: AuthProvider
+metadata:
+  labels:
+    app.kubernetes.io/name: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: argocd-auth-provider
+spec:
+  auth:
+    baseUrl: "https://argo.argocd.tools-k8s-prd.a.intuit.com/"
+  secretRef:
+     name: argocd-token-secret
