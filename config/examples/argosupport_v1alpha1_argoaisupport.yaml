@@ -3,11 +3,11 @@ kind: ArgoAISupport
 metadata:
   labels:
     app.kubernetes.io/name: argo-operations
-    app.kubernetes.io/managed-by: kustomize
   name: gen-ai
 spec:
   workflows:
   - name: gen-ai
+    initiate: true
     autProviderRef:
     - name: genai-authprovider
     - name: argocd-auth-provider

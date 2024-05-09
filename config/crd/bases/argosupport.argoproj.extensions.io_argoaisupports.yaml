@@ -40,6 +40,9 @@ spec:
             description: ArgoAISupportSpec defines the desired state of ArgoAISupport
             properties:
               workflows:
+                description: |-
+                  INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
                 items:
                   properties:
                     autProviderRef:
@@ -53,11 +56,13 @@ spec:
                         - name
                         type: object
                       type: array
+                    initiate:
+                      type: boolean
                     name:
-                      default: gen-ai-f s-f
                       type: string
                   required:
                   - autProviderRef
+                  - initiate
                   - name
                   type: object
                 type: array
@@ -70,64 +75,53 @@ spec:
                 type: string
               message:
                 type: string
+              observedGeneration:
+                description: The generation observed by the  controller from metadata.generation
+                format: int64
+                type: integer
               phase:
                 type: string
               results:
                 description: |-
                   INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
                   Important: Run "make" to regenerate code after modifying this file
-                properties:
-                  feedback:
-                    properties:
-                      downVote:
-                        type: boolean
-                      feedbackMsg:
-                        type: string
-                      upVote:
-                        type: boolean
-                    required:
-                    - downVote
-                    - feedbackMsg
-                    - upVote
-                    type: object
-                  finishedAt:
-                    format: date-time
-                    type: string
-                  help:
-                    properties:
-                      links:
-                        items:
+                items:
+                  properties:
+                    feedback:
+                      properties:
+                        downVote:
+                          type: boolean
+                        feedbackMsg:
                           type: string
-                        type: array
-                      slackChannel:
-                        type: string
-                    required:
-                    - links
-                    - slackChannel
-                    type: object
-                  name:
-                    type: string
-                  startedAt:
-                    format: date-time
-                    type: string
-                  summary:
-                    properties:
-                      mainSummary:
-                        type: string
-                      userRecommendation:
-                        type: string
-                    required:
-                    - mainSummary
-                    - userRecommendation
-                    type: object
-                required:
-                - feedback
-                - finishedAt
-                - help
-                - name
-                - startedAt
-                - summary
-                type: object
+                        upVote:
+                          type: boolean
+                      type: object
+                    finishedAt:
+                      format: date-time
+                      type: string
+                    help:
+                      properties:
+                        links:
+                          items:
+                            type: string
+                          type: array
+                        slackChannel:
+                          type: string
+                      type: object
+                    name:
+                      type: string
+                    phase:
+                      type: string
+                    startedAt:
+                      format: date-time
+                      type: string
+                    summary:
+                      properties:
+                        mainSummary:
+                          type: string
+                      type: object
+                  type: object
+                type: array
               startedAt:
                 format: date-time
                 type: string

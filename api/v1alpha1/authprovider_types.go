@@ -31,8 +31,7 @@ type AuthProviderSpec struct {
 
 	// SecretRef contains the credentials required to auth to a specific ai_operations
 	SecretRef *v1.LocalObjectReference `json:"secretRef,omitempty"`
-
-	Auth *Auth `json:"auth,omitempty"`
+	Auth      *Auth                    `json:"auth,omitempty"`
 }
 
 // AuthProviderStatus defines the observed state of AuthProvider

@@ -10,11 +10,7 @@ var SchemeGroupVersion = schema.GroupVersion{Group: rollouts.Group, Version: "v1
 
 var (
 	// GroupVersionResource for all rollout types
-	RolloutGVR                 = SchemeGroupVersion.WithResource("rollouts")
-	AnalysisRunGVR             = SchemeGroupVersion.WithResource("analysisruns")
-	AnalysisTemplateGVR        = SchemeGroupVersion.WithResource("analysistemplates")
-	ClusterAnalysisTemplateGVR = SchemeGroupVersion.WithResource("clusteranalysistemplates")
-	ExperimentGVR              = SchemeGroupVersion.WithResource("experiments")
+	RolloutGVR = SchemeGroupVersion.WithResource("rollouts")
 )
 
 type Auth struct {
@@ -28,8 +24,9 @@ type Auth struct {
 type Workflow struct {
 
 	// +kubebuilder:validation:Required
-	// +kubebuilder:default:=gen-ai-f s-f
 	Name string `json:"name"`
+	// +kubebuilder:validation:Required
+	Initiate bool `json:"initiate"`
 	// +kubebuilder:validation:Required
 	Ref []NamespacedObjectReference `json:"autProviderRef"`
 }

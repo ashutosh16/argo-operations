@@ -7,6 +7,6 @@ metadata:
   name: argocd-auth-provider
 spec:
   auth:
-    baseUrl: "https://argo.argocd.tools-k8s-prd.a.intuit.com/"
+    baseUrl: "https://argo.argocd.tools-k8s-prd.a.intuit.com"
   secretRef:
      name: argocd-token-secret

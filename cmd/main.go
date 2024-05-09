@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -58,8 +59,8 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8086", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8089", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -95,6 +96,8 @@ func main() {
 		TLSOpts: tlsOpts,
 	})
 	dynamicClient, _ := dynamic.NewForConfig(ctrl.GetConfigOrDie())
+	kubeClient, err := kubernetes.NewForConfig(ctrl.GetConfigOrDie())
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: metricsserver.Options{
@@ -125,7 +128,6 @@ func main() {
 
 	if err = (&controller.AuthProviderReconciler{
 		Client: mgr.GetClient(),
-
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "AuthProvider")
@@ -134,7 +136,8 @@ func main() {
 	if err = (&controller.ArgoAISupportReconciler{
 		Client:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
-		DynamicClient: dynamicClient,
+		DynamicClient: *dynamicClient,
+		KubeClient:    kubeClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ArgoAISupport")
 		os.Exit(1)

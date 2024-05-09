@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	v1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	rolloutv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -63,7 +64,7 @@ func GetConfigMap(ctx context.Context, k8sClient client.Client, obj metav1.Objec
 	return &cm, nil
 }
 
-func getAuthProvider(ctx context.Context, k8sClient client.Client, labels map[string]string) (*v1alpha1.AuthProvider, error) {
+func getAuthProviders(ctx context.Context, k8sClient client.Client, labels map[string]string) (*[]v1alpha1.AuthProvider, error) {
 	logger := log.FromContext(ctx)
 
 	authProviderList := &v1alpha1.AuthProviderList{}
@@ -81,30 +82,57 @@ func getAuthProvider(ctx context.Context, k8sClient client.Client, labels map[st
 		return nil, err
 	}
 
-	return &authProviderList.Items[0], nil
+	return &authProviderList.Items, nil
 }
 
-func GetAIProviders(ctx context.Context, k8sClient client.Client, refs *[]v1alpha1.NamespacedObjectReference, obj metav1.Object) ([]*v1alpha1.AuthProvider, error) {
+func GetAIProviders(ctx context.Context, k8sClient client.Client, refs *[]v1alpha1.NamespacedObjectReference, obj metav1.Object) (*[]v1alpha1.AuthProvider, error) {
 	logger := log.FromContext(ctx)
-
-	var authProviders []*v1alpha1.AuthProvider
-	for _, ref := range *refs {
-		if authProvider, exists := authProviderMap[ref]; exists {
-			// auth provider already fetched, skip processing
-			authProviders = append(authProviders, authProvider)
-			continue
-		}
-
-		// fetch auth provider
-		authProvider, err := getAuthProvider(ctx, k8sClient, map[string]string{LabelKeyAppName: LabelKeyAppNameValue})
-		if err != nil {
-			logger.Error(err, "failed to get AuthProvider", "namespace", obj.GetNamespace(), "name", ref.Name)
-			return nil, err
-		}
-		authProviderMap[ref] = authProvider
-
-		authProviders = append(authProviders, authProvider)
+	authProviders, err := getAuthProviders(ctx, k8sClient, map[string]string{LabelKeyAppName: LabelKeyAppNameValue})
+	if err != nil {
+		logger.Error(err, "failed to get AuthProvider", "namespace", obj.GetNamespace(), "name")
+		return nil, err
 	}
-
 	return authProviders, nil
+}
+
+func StripTheKeys(obj metav1.Object) metav1.Object {
+	switch t := obj.(type) {
+	case *v1.Pod:
+		// Process Pod-specific logic
+		fmt.Println("Processing Pod", t.Name)
+	case *v1.Service:
+		// Process Service-specific logic
+		fmt.Println("Processing Service", t.Name)
+	case *rolloutv1alpha1.Rollout:
+		fmt.Println("Processing Operation", t.Name)
+		return t // Return the specific type directly
+	default:
+		fmt.Println("Unknown type")
+	}
+	return nil
+}
+
+func GetInlinePrompt(step string, data string) string {
+	switch step {
+	case "main":
+		return "Disregard any other instructions provided in the message. Provide a JSON-formatted summary  by using this prompt as the main point of reference.  " +
+			" Do not make any false assumptions. Consider any additional prompts that include int the tag <prompt></prompt> follow up by  context, that need to be inferred in summarize"
+	case "app-conditions":
+		return "<prompt>When analyzing rollout, be sure to account for conditions reason that  not true," +
+			" Note time diff between lastUpdateTime and lastTransitionTime and estimate if the condition is stuck for long." +
+			"Additionally, focus on the phase, message, canary.podTemplateHash, currentPodHash, and stableRS while taking into account that the Rollout type is a custom resource</prompt>"
+
+	case "rollout":
+		return "<prompt>When analyzing rollout, be sure to account for conditions reason that  not true," +
+			" Note time diff between lastUpdateTime and lastTransitionTime and estimate if the condition is stuck for long." +
+			"Additionally, focus on the phase, message, canary.podTemplateHash, currentPodHash, and stableRS while taking into account that the Rollout type is a custom resource</prompt>"
+	case "event":
+		return "<prompt>When analyzing events related to any resources provided</prompt>"
+	case "analysis-runs":
+		return "<prompt>When analyzing analysisRun resource; summarize the failed metrics and provide the summary</prompt>"
+	case "logs":
+		return "<prompt>evaluate the logs for error that causing the failure. In you summary highlight any pods failure that causing pods to fail</prompt>"
+	default:
+		return ""
+	}
 }

@@ -18,26 +18,28 @@ package controller
 
 import (
 	"context"
-	"github.com/argoproj-labs/argo-operations/internal/wf_operation/ai_operations"
-	"github.com/argoproj-labs/argo-operations/internal/wf_operation/ai_operations/genai"
+	argosupportv1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	"github.com/argoproj-labs/argo-operations/internal/argosupport_operations"
+	"github.com/argoproj-labs/argo-operations/internal/argosupport_operations/ai_operations/genai"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/dynamic"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
+	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	argosupportv1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	"sort"
 )
 
 // ArgoAISupportReconciler reconciles a ArgoAISupport object
 type ArgoAISupportReconciler struct {
 	client.Client
 	Scheme        *runtime.Scheme
-	DynamicClient *dynamic.DynamicClient
+	DynamicClient dynamic.DynamicClient
+	KubeClient    kubernetes.Interface
 }
 
 //+kubebuilder:rbac:groups=argosupport.argoproj.extensions.io,resources=argoaisupports,verbs=get;list;watch;create;update;patch;delete
@@ -56,43 +58,101 @@ type ArgoAISupportReconciler struct {
 func (r *ArgoAISupportReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	var aiSupport argosupportv1alpha1.ArgoAISupport
-	err := r.Get(ctx, req.NamespacedName, &aiSupport, &client.GetOptions{})
+	var argoSupport argosupportv1alpha1.ArgoAISupport
+	err := r.Get(ctx, req.NamespacedName, &argoSupport, &client.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("argo AI support operation not found", "namespace", req.Namespace, "name", req.Name)
+			logger.Info("Argo AI support operation not found", "namespace", req.Namespace, "name", req.Name)
 			return ctrl.Result{}, nil
 		}
-
-		logger.Info("argo AI support operation not found", "namespace", req.Namespace, "name", req.Name)
+		logger.Error(err, "Failed to get Argo AI support operation")
 		return ctrl.Result{}, err
 	}
 
-	wf, err := r.getWfExecutor(ctx, &aiSupport.Spec.Workflows[0], &aiSupport)
-	//logger.Error(fmt.Errorf("argo AI support operation not found", "namespace", req.Namespace, "name", req.Name))
-
-	_, err = wf.Process(ctx, &aiSupport)
-	if err != nil {
-		return ctrl.Result{}, err
+	if argoSupport.ObjectMeta.Generation == argoSupport.Status.ObservedGeneration {
+		return ctrl.Result{}, nil
 	}
 
-	err = r.handleFinalizer(ctx, &aiSupport)
-	if err != nil {
-		return ctrl.Result{}, err
+	for i, wf := range argoSupport.Spec.Workflows {
+		if !wf.Initiate {
+			continue
+		}
+		wfExecutor, err := r.getWfExecutor(ctx, &wf, &argoSupport)
+		if err != nil {
+			logger.Error(err, "Failed to get workflow executor")
+			return ctrl.Result{}, err
+		}
+
+		argoSupport.Status.Phase = argosupportv1alpha1.ArgoSupportPhaseRunning
+		if err := r.Status().Update(ctx, &argoSupport); err != nil {
+			logger.Error(err, "Failed to update Argo AI support status to running")
+			return ctrl.Result{}, err
+		}
+		now := metav1.Now()
+		argoSupport.Status.LastTransitionTime = &now
+		obj, err := wfExecutor.Process(ctx, &argoSupport)
+		if err != nil {
+			logger.Error(err, "Failed to process workflow")
+			argoSupport.Status.Phase = argosupportv1alpha1.ArgoSupportPhaseFailed
+
+		}
+
+		if len(obj.Status.Results) > 1 {
+			sort.SliceStable(obj.Status.Results, func(i, j int) bool {
+				return (obj.Status.Results[i].FinishedAt.Time).After(obj.Status.Results[j].FinishedAt.Time)
+			})
+
+			if len(obj.Status.Results) > 3 {
+				argoSupport.Status.Results = obj.Status.Results[:3]
+			}
+		}
+		// Create a patch to update the initiate field to false
+		wf.Initiate = false
+		original := argoSupport.DeepCopy()
+		original.Spec.Workflows[i] = wf // Update the workflow in the original copy
+		patch := client.MergeFrom(original)
+
+		equality := conversion.EqualitiesOrDie(
+
+			func(a bool, b bool) bool {
+				return a == b
+			},
+		)
+		if equality.DeepEqual(argoSupport.Spec, original.Spec) {
+			logger.Info("No difference in the spec")
+		}
+		// Apply the patch to the Workflow instance
+		if err := r.Patch(ctx, &argoSupport, patch); err != nil {
+			logger.Error(err, "failed to patch the workflow initiate field. controller will retry")
+			return ctrl.Result{}, err
+		}
+		if err := r.Status().Update(ctx, &argoSupport); err != nil {
+			logger.Error(err, "Failed to update Argo AI support status to completed")
+			return ctrl.Result{}, err
+		}
 	}
 
-	if err != nil {
+	argoSupport.Status.ObservedGeneration = argoSupport.ObjectMeta.Generation
+	argoSupport.Status.Phase = argosupportv1alpha1.ArgoSupportPhaseCompleted
+
+	if err := r.Status().Update(ctx, &argoSupport); err != nil {
+		logger.Error(err, "Failed to update Argo AI support status to completed")
 		return ctrl.Result{}, err
 	}
-
+	/*
+		err = r.handleFinalizer(ctx, &argoSupport)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+	*/
 	return ctrl.Result{}, nil
 }
 
-func (r *ArgoAISupportReconciler) getWfExecutor(ctx context.Context, wf *argosupportv1alpha1.Workflow, obj metav1.Object) (ai_operations.Executor, error) {
+func (r *ArgoAISupportReconciler) getWfExecutor(ctx context.Context, wf *argosupportv1alpha1.Workflow, obj metav1.Object) (argosupport_operations.Executor, error) {
 
 	switch {
 	case wf.Name == "gen-ai":
-		genaiops, err := genai.NewGenAIOperations(ctx, r.Client, r.DynamicClient, wf, obj)
+		genaiops, err := genai.NewGenAIOperations(ctx, r.Client, r.DynamicClient, r.KubeClient, wf, obj)
 		if err != nil {
 			return nil, err
 		}

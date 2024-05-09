@@ -23,11 +23,19 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type ArgoSupportPhase string
+
+// Possible ArgoSupportPhase values
+const (
+	ArgoSupportPhaseRunning   ArgoSupportPhase = "Running"
+	ArgoSupportPhaseCompleted ArgoSupportPhase = "Completed"
+	ArgoSupportPhaseFailed    ArgoSupportPhase = "Failed"
+)
+
 // ArgoAISupportSpec defines the desired state of ArgoAISupport
 type ArgoAISupportSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
 	// +kubebuilder:validation:Required
 	Workflows []Workflow `json:"workflows,omitempty"`
 }
@@ -36,41 +44,42 @@ type ArgoAISupportSpec struct {
 type ArgoAISupportStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Results    Result       `json:"results,omitempty"`
-	FinishedAt *metav1.Time `json:"finishedAt,omitempty"`
-	Message    string       `json:"message,omitempty"`
-	Phase      string       `json:"phase,omitempty"`
-	StartedAt  *metav1.Time `json:"startedAt,omitempty"`
+	Results            []Result     `json:"results,omitempty"`
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
+	// The generation observed by the  controller from metadata.generation
+	// +kubebuilder:validation:Optional
+	ObservedGeneration int64            `json:"observedGeneration,omitempty"`
+	Phase              ArgoSupportPhase `json:"phase,omitempty"`
 }
 
 type Feedback struct {
-	DownVote    bool   `json:"downVote"`
-	FeedbackMsg string `json:"feedbackMsg"`
-	UpVote      bool   `json:"upVote"`
+	DownVote    bool   `json:"downVote,omitempty"`
+	FeedbackMsg string `json:"feedbackMsg,omitempty"`
+	UpVote      bool   `json:"upVote,omitempty"`
 }
 
 type Help struct {
-	Links        []string `json:"links"`
-	SlackChannel string   `json:"slackChannel"`
+	Links        []string `json:"links,omitempty"`
+	SlackChannel string   `json:"slackChannel,omitempty"`
 }
 
 type Summary struct {
-	MainSummary        string `json:"mainSummary"`
-	UserRecommendation string `json:"userRecommendation"`
+	MainSummary string `json:"mainSummary,omitempty"`
 }
 
 type Result struct {
-	Feedback   Feedback     `json:"feedback"`
-	FinishedAt *metav1.Time `json:"finishedAt"`
-	Help       Help         `json:"help"`
-	Name       string       `json:"name"`
-	StartedAt  *metav1.Time `json:"startedAt"`
-	Summary    Summary      `json:"summary"`
+	Feedback   Feedback         `json:"feedback,omitempty"`
+	FinishedAt *metav1.Time     `json:"finishedAt,omitempty"`
+	Help       Help             `json:"help,omitempty"`
+	Name       string           `json:"name,omitempty"`
+	StartedAt  *metav1.Time     `json:"startedAt,omitempty"`
+	Summary    Summary          `json:"summary,omitempty"`
+	Message    string           `json:"message,omitempty"`
+	Phase      ArgoSupportPhase `json:"phase,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 // ArgoAISupport is the Schema for the argoaisupports API
 type ArgoAISupport struct {
 	metav1.TypeMeta   `json:",inline"`
