@@ -3,19 +3,13 @@ package utils
 import (
 	"context"
 	"fmt"
-	v1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	v1alpha1 "github.com/argoproj-labs/argo-support/api/v1alpha1"
 	rolloutv1alpha1 "github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-)
-
-const (
-	// LabelKeyAppName is the label key to identify the authprovider
-	LabelKeyAppName      = "app.kubernetes.io/name"
-	LabelKeyAppNameValue = "argo-operations"
 )
 
 var authProviderMap = make(map[v1alpha1.NamespacedObjectReference]*v1alpha1.AuthProvider)
@@ -42,28 +36,6 @@ func GetSecret(ctx context.Context, k8sClient client.Client, authProvider *v1alp
 	return &secret, nil
 }
 
-func GetConfigMap(ctx context.Context, k8sClient client.Client, obj metav1.Object) (*v1.ConfigMap, error) {
-	logger := log.FromContext(ctx)
-
-	var cm v1.ConfigMap
-	objectKey := client.ObjectKey{
-		Namespace: obj.GetNamespace(),
-		Name:      obj.GetName(),
-	}
-	err := k8sClient.Get(ctx, objectKey, &cm)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info("ConfigMap not found", "namespace", objectKey.Namespace, "name", objectKey.Name)
-			return nil, err
-		}
-
-		logger.Error(err, "failed to get ConfigMap", "namespace", objectKey.Namespace, "name", objectKey.Name)
-		return nil, err
-	}
-
-	return &cm, nil
-}
-
 func getAuthProviders(ctx context.Context, k8sClient client.Client, labels map[string]string) (*[]v1alpha1.AuthProvider, error) {
 	logger := log.FromContext(ctx)
 
@@ -85,14 +57,45 @@ func getAuthProviders(ctx context.Context, k8sClient client.Client, labels map[s
 	return &authProviderList.Items, nil
 }
 
-func GetAIProviders(ctx context.Context, k8sClient client.Client, refs *[]v1alpha1.NamespacedObjectReference, obj metav1.Object) (*[]v1alpha1.AuthProvider, error) {
+func GetAuthProviders(ctx context.Context, k8sClient client.Client, refs *[]v1alpha1.NamespacedObjectReference, namespace string) (*[]v1alpha1.AuthProvider, error) {
 	logger := log.FromContext(ctx)
-	authProviders, err := getAuthProviders(ctx, k8sClient, map[string]string{LabelKeyAppName: LabelKeyAppNameValue})
+	authProviders, err := getAuthProviders(ctx, k8sClient, map[string]string{v1alpha1.LabelKeyAppName: v1alpha1.LabelKeyAppNameValue})
 	if err != nil {
-		logger.Error(err, "failed to get AuthProvider", "namespace", obj.GetNamespace(), "name")
+		logger.Error(err, "failed to get AuthProvider", "namespace", namespace)
 		return nil, err
 	}
 	return authProviders, nil
+}
+
+func getConfigMap(ctx context.Context, k8sClient client.Client, labels map[string]string) (*v1.ConfigMap, error) {
+	logger := log.FromContext(ctx)
+
+	cmList := &v1.ConfigMapList{}
+	listOptions := []client.ListOption{
+		client.MatchingLabels(labels),
+	}
+	err := k8sClient.List(ctx, cmList, listOptions...)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(cmList.Items) == 0 {
+		err = fmt.Errorf("ConfigMap not found with labels %#v", labels)
+		logger.Info(err.Error())
+		return nil, err
+	}
+
+	return &cmList.Items[0], nil
+}
+
+func GetConfigMapRef(ctx context.Context, k8sClient client.Client, refs *v1alpha1.ConfigMapRef, namespace string) (*v1.ConfigMap, error) {
+	logger := log.FromContext(ctx)
+	cm, err := getConfigMap(ctx, k8sClient, map[string]string{v1alpha1.LabelKeyAppName: v1alpha1.LabelKeyAppNameValue})
+	if err != nil {
+		logger.Error(err, "failed to get AuthProvider", "namespace", namespace)
+		return nil, err
+	}
+	return cm, nil
 }
 
 func StripTheKeys(obj metav1.Object) metav1.Object {

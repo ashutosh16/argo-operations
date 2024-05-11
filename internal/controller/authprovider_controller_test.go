@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	argosupportv1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	argosupportv1alpha1 "github.com/argoproj-labs/argo-support/api/v1alpha1"
 )
 
 var _ = Describe("AuthProvider Controller", func() {

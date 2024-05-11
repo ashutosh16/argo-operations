@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: genai-cm
+  labels:
+    app.kubernetes.io/name: argo-support
+data:
+  help.slack: '#argo-support'
+  help.stackoverflow: 'https://stackoverflow.intuit.com/search?q=argo'

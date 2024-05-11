@@ -1,5 +1,5 @@
 ## Append examples of your project ##
 resources:
 - argosupport_v1alpha1_argocdauthprovider.yaml
-- argosupport_v1alpha1_argoaisupport.yaml
+- argosupport_v1alpha1_argosupport.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

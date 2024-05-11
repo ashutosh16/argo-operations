@@ -56,6 +56,14 @@ spec:
                         - name
                         type: object
                       type: array
+                    configMapRef:
+                      properties:
+                        name:
+                          description: Name of the ConfigMap
+                          type: string
+                      required:
+                      - name
+                      type: object
                     initiate:
                       type: boolean
                     name:
@@ -70,10 +78,8 @@ spec:
           status:
             description: ArgoAISupportStatus defines the observed state of ArgoAISupport
             properties:
-              finishedAt:
+              lastTransitionTime:
                 format: date-time
-                type: string
-              message:
                 type: string
               observedGeneration:
                 description: The generation observed by the  controller from metadata.generation
@@ -108,6 +114,8 @@ spec:
                         slackChannel:
                           type: string
                       type: object
+                    message:
+                      type: string
                     name:
                       type: string
                     phase:
@@ -122,9 +130,6 @@ spec:
                       type: object
                   type: object
                 type: array
-              startedAt:
-                format: date-time
-                type: string
             type: object
         type: object
     served: true

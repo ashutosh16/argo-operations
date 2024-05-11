@@ -24,10 +24,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/argoproj-labs/argo-operations/test/utils"
+	"github.com/argoproj-labs/argo-support/test/utils"
 )
 
-const namespace = "argo-operations-system"
+const namespace = "argo-support-system"
 
 var _ = Describe("controller", Ordered, func() {
 	BeforeAll(func() {
@@ -60,7 +60,7 @@ var _ = Describe("controller", Ordered, func() {
 			var err error
 
 			// projectimage stores the name of the image used in the examples
-			var projectimage = "examples.com/argo-operations:v0.0.1"
+			var projectimage = "examples.com/argo-support:v0.0.1"
 
 			By("building the manager(Operator) image")
 			cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))

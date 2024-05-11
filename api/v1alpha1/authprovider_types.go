@@ -29,7 +29,7 @@ type AuthProviderSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// SecretRef contains the credentials required to auth to a specific ai_operations
+	// SecretRef contains the credentials required to auth to a specific wf_executor
 	SecretRef *v1.LocalObjectReference `json:"secretRef,omitempty"`
 	Auth      *Auth                    `json:"auth,omitempty"`
 }

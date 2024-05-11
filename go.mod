@@ -1,4 +1,4 @@
-module github.com/argoproj-labs/argo-operations
+module github.com/argoproj-labs/argo-support
 
 go 1.21
 

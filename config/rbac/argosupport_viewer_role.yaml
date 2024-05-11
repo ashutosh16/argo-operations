@@ -1,0 +1,27 @@
+# permissions for end users to view argosupports.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: argosupport-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: argo-operations
+    app.kubernetes.io/part-of: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: argosupport-viewer-role
+rules:
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - argosupports
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - argosupports/status
+  verbs:
+  - get

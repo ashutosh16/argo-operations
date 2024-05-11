@@ -2,11 +2,11 @@ apiVersion: argosupport.argoproj.extensions.io/v1alpha1
 kind: AuthProvider
 metadata:
   labels:
-    app.kubernetes.io/name: argo-operations
+    app.kubernetes.io/name: argo-support
     app.kubernetes.io/managed-by: kustomize
   name: argocd-auth-provider
 spec:
   auth:
-    baseUrl: "https://argo.argocd.tools-k8s-prd.a.intuit.com"
+    baseUrl: "http://localhost:4000"
   secretRef:
      name: argocd-token-secret

@@ -5,26 +5,6 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - argoproj.io
-  resources:
-  - applicationsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - argoproj.io
-  resources:
-  - applicationsets/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - argosupport.argoproj.extensions.io
   resources:
   - argoaisupports
@@ -46,6 +26,32 @@ rules:
   - argosupport.argoproj.extensions.io
   resources:
   - argoaisupports/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - argosupports
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - argosupports/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - argosupport.argoproj.extensions.io
+  resources:
+  - argosupports/status
   verbs:
   - get
   - patch

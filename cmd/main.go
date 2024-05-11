@@ -19,9 +19,10 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"os"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -36,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	argosupportv1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
-	"github.com/argoproj-labs/argo-operations/internal/controller"
+	argosupportv1alpha1 "github.com/argoproj-labs/argo-support/api/v1alpha1"
+	"github.com/argoproj-labs/argo-support/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -133,13 +134,15 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "AuthProvider")
 		os.Exit(1)
 	}
-	if err = (&controller.ArgoAISupportReconciler{
+
+	if err = (&controller.ArgoSupportReconciler{
+
 		Client:        mgr.GetClient(),
 		Scheme:        mgr.GetScheme(),
 		DynamicClient: *dynamicClient,
 		KubeClient:    kubeClient,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ArgoAISupport")
+		setupLog.Error(err, "unable to create controller", "controller", "ArgoSupport")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

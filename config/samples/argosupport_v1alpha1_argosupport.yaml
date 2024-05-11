@@ -1,0 +1,9 @@
+apiVersion: argosupport.argoproj.extensions.io/v1alpha1
+kind: ArgoSupport
+metadata:
+  labels:
+    app.kubernetes.io/name: argo-operations
+    app.kubernetes.io/managed-by: kustomize
+  name: argosupport-sample
+spec:
+  # TODO(user): Add fields here

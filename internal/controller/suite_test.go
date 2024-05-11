@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	argosupportv1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
+	argosupportv1alpha1 "github.com/argoproj-labs/argo-support/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

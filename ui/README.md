@@ -1,1 +1,0 @@
-# argocd-ext-demo

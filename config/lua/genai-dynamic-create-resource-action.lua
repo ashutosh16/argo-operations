@@ -2,21 +2,22 @@ data:
  resource.customizations.actions.argoproj.io_Rollout: |
   discovery.lua: |
     actions = {}
-    actions["genai-analysis"] = {}
+    actions["genai"] = {}
     return actions
   definitions:
   - name: genai-analysis
     action.lua: |
       local genaianalysis = {}
       genaianalysis.apiVersion = "argoproj.extensions.io/v1alpha1"
-      genaianalysis.kind = "ArgoOperationRun"
+      genaianalysis.kind = "ArgoSupport"
       genaianalysis.metadata = {}
       local os = require("os")
-      genaianalysis.metadata.name = "genai-analysis-run"
+      genaianalysis.metadata.name = "gen-ai"
       genaianalysis.metadata.namespace = obj.metadata.namespace
       genaianalysis.metadata.labels = {}
       genaianalysis.metadata.labels["app"] = obj.metadata.labels["app"]
-      genaianalysis.metadata.labels["rollout-type"] = "Background"
+      genaianalysis.metadata.labels["app.kubernetes.io/instance"] = obj.metadata.labels["app.kubernetes.io/instance"]
+
       genaianalysis.metadata.labels["rollouts-pod-template-hash"] = obj.status.currentPodHash
       genaianalysis.metadata.annotations = {}
       genaianalysis.metadata.annotations["rollout.argoproj.io/revision"] = obj.metadata.annotations["rollout.argoproj.io/revision"]

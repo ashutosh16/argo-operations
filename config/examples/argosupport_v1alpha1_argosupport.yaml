@@ -1,0 +1,15 @@
+apiVersion: argosupport.argoproj.extensions.io/v1alpha1
+kind: ArgoSupport
+metadata:
+  labels:
+    app.kubernetes.io/instance: argo-rollouts
+  name: gen-ai
+spec:
+  workflows:
+  - name: gen-ai
+    initiate: true
+    configMapRef:
+      name: genai-cm
+    autProviderRef:
+    - name: genai-authprovider
+    - name: argocd-auth-provider

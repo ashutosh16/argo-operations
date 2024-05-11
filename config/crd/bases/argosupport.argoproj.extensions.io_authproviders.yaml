@@ -54,7 +54,7 @@ spec:
                 type: object
               secretRef:
                 description: SecretRef contains the credentials required to auth to
-                  a specific ai_operations
+                  a specific wf_executor
                 properties:
                   name:
                     description: |-
