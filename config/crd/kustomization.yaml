@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/argosupport.argoproj.extensions.io_authproviders.yaml
-- bases/argosupport.argoproj.extensions.io_argoaisupports.yaml
 - bases/argosupport.argoproj.extensions.io_argosupports.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 

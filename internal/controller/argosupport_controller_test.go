@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	argosupportv1alpha1 "github.com/argoproj-labs/argo-support/api/v1alpha1"
+	argoprojextensionsiov1alpha1 "github.com/argoproj-labs/argo-operations/api/v1alpha1"
 )
 
 var _ = Describe("ArgoSupport Controller", func() {
@@ -40,13 +40,13 @@ var _ = Describe("ArgoSupport Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		argosupport := &argosupportv1alpha1.ArgoSupport{}
+		argosupport := &argoprojextensionsiov1alpha1.ArgoSupport{}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind ArgoSupport")
 			err := k8sClient.Get(ctx, typeNamespacedName, argosupport)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &argosupportv1alpha1.ArgoSupport{
+				resource := &argoprojextensionsiov1alpha1.ArgoSupport{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,7 +59,7 @@ var _ = Describe("ArgoSupport Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &argosupportv1alpha1.ArgoSupport{}
+			resource := &argoprojextensionsiov1alpha1.ArgoSupport{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
